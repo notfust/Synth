@@ -8,57 +8,46 @@
   ==============================================================================
 */
 
-#include "OscData.h"
+#include "./OscData.h"
 
 
 using namespace juce;
 
-void OscData::prepareToPlay (double sampleRate,
-                             int    samplesPerBlock,
-                             int    outputChannels)
+void OscData::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
 {
     resetAll();
-    
+
     dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
-    spec.sampleRate = sampleRate;
-    spec.numChannels = outputChannels;
-    
-    prepare (spec);
-    fmOsc.prepare (spec);
-    gain.prepare (spec);
+    spec.sampleRate       = sampleRate;
+    spec.numChannels      = outputChannels;
+
+    prepare(spec);
+    fmOsc.prepare(spec);
+    gain.prepare(spec);
 }
 
-void OscData::setType (const int oscSelection)
+void OscData::setType(const int oscSelection)
 {
-    switch (oscSelection)
-    {
+    switch (oscSelection) {
         // Sine
         case 0:
-            initialise ([](float x) {
-                return std::sin (x);
-            });
+            initialise([](float x) { return std::sin(x); });
             break;
 
         // Saw
         case 1:
-            initialise ([] (float x) {
-                return x / MathConstants<float>::pi;
-            });
+            initialise([](float x) { return x / MathConstants<float>::pi; });
             break;
 
         // Square
         case 2:
-            initialise ([] (float x) {
-                return x < 0.0f ? -1.0f : 1.0f;
-            });
+            initialise([](float x) { return x < 0.0f ? -1.0f : 1.0f; });
             break;
-            
+
         // Triangle
         case 3:
-            initialise ([] (float x) {
-                return x < 0.0f ? -1.0f : 1.0f;
-            });
+            initialise([](float x) { return x < 0.0f ? -1.0f : 1.0f; });
             break;
 
         default:
@@ -67,55 +56,46 @@ void OscData::setType (const int oscSelection)
     }
 }
 
-void OscData::setGain (const float levelInDecibels)
-{
-    gain.setGainDecibels (levelInDecibels);
-}
+void OscData::setGain(const float levelInDecibels) { gain.setGainDecibels(levelInDecibels); }
 
-void OscData::setOscPitch (const int pitch)
+void OscData::setOscPitch(const int pitch)
 {
     lastPitch = pitch;
-    setFrequency (MidiMessage::getMidiNoteInHertz ((lastMidiNote + lastPitch) + fmModulator));
-
+    setFrequency(MidiMessage::getMidiNoteInHertz((lastMidiNote + lastPitch) + fmModulator));
 }
 
-void OscData::setFreq (const int midiNoteNumber)
+void OscData::setFreq(const int midiNoteNumber)
 {
-    setFrequency (MidiMessage::getMidiNoteInHertz ((midiNoteNumber + lastPitch) + fmModulator));
+    setFrequency(MidiMessage::getMidiNoteInHertz((midiNoteNumber + lastPitch) + fmModulator));
     lastMidiNote = midiNoteNumber;
 }
 
-void OscData::setFmOsc (const float freq,
-                        const float depth)
+void OscData::setFmOsc(const float freq, const float depth)
 {
     fmDepth = depth;
-    fmOsc.setFrequency (freq);
-    setFrequency (MidiMessage::getMidiNoteInHertz ((lastMidiNote + lastPitch) + fmModulator));
+    fmOsc.setFrequency(freq);
+    setFrequency(MidiMessage::getMidiNoteInHertz((lastMidiNote + lastPitch) + fmModulator));
 }
 
-void OscData::renderNextBlock (dsp::AudioBlock<float>& audioBlock)
+void OscData::renderNextBlock(dsp::AudioBlock<float>& audioBlock)
 {
-    jassert (audioBlock.getNumSamples() > 0);
-    process (dsp::ProcessContextReplacing<float> (audioBlock));
-    gain.process (dsp::ProcessContextReplacing<float> (audioBlock));
+    jassert(audioBlock.getNumSamples() > 0);
+    process(dsp::ProcessContextReplacing<float>(audioBlock));
+    gain.process(dsp::ProcessContextReplacing<float>(audioBlock));
 }
 
-float OscData::processNextSample (float input)
+float OscData::processNextSample(float input)
 {
-    fmModulator = fmOsc.processSample (input) * fmDepth;
-    return gain.processSample (processSample (input));
+    fmModulator = fmOsc.processSample(input) * fmDepth;
+    return gain.processSample(processSample(input));
 }
 
-void OscData::setParams (const int   oscChoice,
-                         const float oscGain,
-                         const int   oscPitch,
-                         const float fmFreq,
-                         const float fmDepth)
+void OscData::setParams(const int oscChoice, const float oscGain, const int oscPitch, const float fmFreq, const float fmDepth)
 {
-    setType (oscChoice);
-    setGain (oscGain);
-    setOscPitch (oscPitch);
-    setFmOsc (fmFreq, fmDepth);
+    setType(oscChoice);
+    setGain(oscGain);
+    setOscPitch(oscPitch);
+    setFmOsc(fmFreq, fmDepth);
 }
 
 void OscData::resetAll()

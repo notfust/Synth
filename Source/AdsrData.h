@@ -14,15 +14,11 @@
 
 using namespace juce;
 
-class AdsrData
-    : public ADSR
+class AdsrData : public ADSR
 {
 public:
-    void updateParameters (const float attack,
-                           const float decay,
-                           const float sustain,
-                           const float release);
-    
+    void updateParameters(const float attack, const float decay, const float sustain, const float release);
+
 private:
     ADSR::Parameters adsrParams;
 };
